@@ -7,7 +7,40 @@
 static const uint16_t screenWidth  = 240;
 static const uint16_t screenHeight = 240;
 
-TFT_eSPI display = TFT_eSPI(screenWidth, screenHeight);
+
+// TFT driver code
+
+static TFT_eSPI tftDisplay = TFT_eSPI(screenWidth, screenHeight);
+static SemaphoreHandle_t displayMutex = NULL;
+
+void displayInit() {
+  displayMutex = xSemaphoreCreateMutex();
+  if (displayMutex == NULL) {
+    Serial.println("Failed to create tftDisplay mutex");
+  }
+
+  xSemaphoreTake(displayMutex, portMAX_DELAY);
+  tftDisplay.init();
+  tftDisplay.setRotation(1);
+  xSemaphoreGive(displayMutex);
+}
+
+void displayShowJpeg(uint8_t* buf, uint32_t len) {
+  xSemaphoreTake(displayMutex, portMAX_DELAY);
+  tftDisplay.startWrite();
+  tftDisplay.setAddrWindow(0, 0, screenWidth, screenHeight);
+  tftDisplay.pushColors(buf, len);
+  tftDisplay.endWrite();
+  xSemaphoreGive(displayMutex);
+}
+
+void displayFillScreen(uint16_t color) {
+  xSemaphoreTake(displayMutex, portMAX_DELAY);
+  tftDisplay.fillScreen(color);
+  xSemaphoreGive(displayMutex);
+}
+
+// TFT driver code ends
 
 // Your camera configuration here
 camera_config_t config;
@@ -26,10 +59,7 @@ static void displayImageTask(void * pvParameters) {
     uint32_t len = fb->len;
     Serial.println("Image size: " + String(len) + " bytes");
 
-    display.startWrite();
-    display.setAddrWindow(0, 0, screenWidth, screenHeight);
-    display.pushColors(buf, len);
-    display.endWrite();
+    displayShowJpeg(buf, len);
     Serial.println("Displaying image");
 
     esp_camera_fb_return(fb);    
@@ -43,13 +73,12 @@ static void displayImageTask(void * pvParameters) {
 
 void prepDisplay() {
     // Initialize the TFT screen
-    display.init();
-    display.setRotation(1);
-    display.fillScreen(TFT_ORANGE);
+    displayInit();
+    displayFillScreen(TFT_ORANGE);
     delay(1000);
-    display.fillScreen(TFT_BLACK);
+    displayFillScreen(TFT_BLACK);
     delay(1000);
-    display.fillScreen(TFT_BLUE);
+    displayFillScreen(TFT_BLUE);
 }
 
 void startDisplay() {
