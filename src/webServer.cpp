@@ -21,7 +21,7 @@ bool useSecure = false;
 static fs::FS fp = STORAGE;
 static byte* chunk;
 
-esp_err_t sendChunks(File df, httpd_req_t *req, bool endChunking) {   
+esp_err_t sendChunks(FileMutSpi df, httpd_req_t *req, bool endChunking) {   
   // use chunked encoding to send large content to browser
   size_t chunksize = 0;
   while ((chunksize = df.read(chunk, CHUNKSIZE))) {
@@ -44,7 +44,7 @@ esp_err_t fileHandler(httpd_req_t* req, bool download) {
   // send file contents to browser
   httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
   if (!strcmp(inFileName, LOG_FILE_PATH)) flush_log(false);
-  File df = fp.open(inFileName);
+  FileMutSpi df = fp.open(inFileName);
   if (!df) {
     df.close();
     LOG_ERR("File does not exist or cannot be opened: %s", inFileName);
@@ -312,7 +312,7 @@ static esp_err_t uploadHandler(httpd_req_t *req) {
   
     } else {
       // create / replace data file on storage
-      File uf = fp.open(inFileName, FILE_WRITE);
+      FileMutSpi uf = fp.open(inFileName, FILE_WRITE);
       if (!uf) LOG_ERR("Failed to open %s on storage", inFileName);
       else {
         // obtain file content

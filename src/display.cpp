@@ -46,6 +46,7 @@ void displayFillScreen(uint16_t color) {
 camera_config_t config;
 
 static void displayImageTask(void * pvParameters) {
+  uint8_t c = 0;
   while (true) {
     
     camera_fb_t *fb = esp_camera_fb_get();
@@ -59,7 +60,20 @@ static void displayImageTask(void * pvParameters) {
     uint32_t len = fb->len;
     Serial.println("Image size: " + String(len) + " bytes");
 
-    displayShowJpeg(buf, len);
+    switch (c%3)
+    {
+    case 0:
+      displayFillScreen(TFT_ORANGE);
+      break;
+    case 1:
+      displayFillScreen(TFT_BLACK);
+      break;
+    case 2:
+      displayFillScreen(TFT_BLUE);
+      break;
+    default:
+      break;
+    }
     Serial.println("Displaying image");
 
     esp_camera_fb_return(fb);    
@@ -67,6 +81,7 @@ static void displayImageTask(void * pvParameters) {
 
     // Delay for a bit before capturing the next frame
     vTaskDelay(2000 / portTICK_PERIOD_MS); // Delay for 100ms
+    c++;
   }
   vTaskDelete(NULL);
 }

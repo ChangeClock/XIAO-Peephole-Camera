@@ -93,7 +93,7 @@ static void postHeader(const char* tmethod, const char* contentType, bool isFile
   hclient.print(fsBuff); // http header
 }
 
-static bool hfsStoreFile(File &fh) {
+static bool hfsStoreFile(FileMutSpi &fh) {
   // Upload individual file to HTTPS server
   // reject if folder or not valid file type
 #ifdef ISCAM
@@ -230,7 +230,7 @@ static bool openDataPort() {
   return true;
 }
 
-static bool ftpStoreFile(File &fh) {
+static bool ftpStoreFile(FileMutSpi &fh) {
   // Upload individual file to current folder, overwrite any existing file 
   // reject if folder, or not valid file type    
 #ifdef ISCAM
@@ -301,7 +301,7 @@ static bool uploadFolderOrFileFs(const char* fileOrFolder) {
   res = false;
   const int saveRefreshVal = refreshVal;
   refreshVal = 1;
-  File root = fp.open(fileOrFolder);
+  FileMutSpi root = fp.open(fileOrFolder);
   if (!root.isDirectory()) {
     // Upload a single file 
     char fsSaveName[FILE_NAME_LEN];
@@ -312,13 +312,13 @@ static bool uploadFolderOrFileFs(const char* fileOrFolder) {
     if (res) {
       changeExtension(fsSaveName, CSV_EXT);
       if (fp.exists(fsSaveName)) {
-        File csv = fp.open(fsSaveName);
+        FileMutSpi csv = fp.open(fsSaveName);
         res = fsUse ? hfsStoreFile(csv) : ftpStoreFile(csv);
         csv.close();
       }
       changeExtension(fsSaveName, SRT_EXT);
       if (fp.exists(fsSaveName)) {
-        File srt = fp.open(fsSaveName);
+        FileMutSpi srt = fp.open(fsSaveName);
         res = fsUse ? hfsStoreFile(srt) : ftpStoreFile(srt);
         srt.close();
       }
@@ -334,7 +334,7 @@ static bool uploadFolderOrFileFs(const char* fileOrFolder) {
       refreshVal = saveRefreshVal;
       return false;
     }
-    File fh = root.openNextFile();
+    FileMutSpi fh = root.openNextFile();
     while (fh) {
       res = fsUse ? hfsStoreFile(fh) : ftpStoreFile(fh);
       if (!res) break; // abandon rest of files
@@ -356,7 +356,7 @@ static void fileServerTask(void* parameter) {
 #endif
   fsChunk = psramFound() ? (byte*)ps_malloc(CHUNKSIZE) : (byte*)malloc(CHUNKSIZE); 
   if (strlen(storedPathName) >= 2) {
-    File root = fp.open(storedPathName);
+    FileMutSpi root = fp.open(storedPathName);
     if (!root) LOG_ERR("Failed to open: %s", storedPathName);
     else { 
       bool res = uploadFolderOrFileFs(storedPathName);
