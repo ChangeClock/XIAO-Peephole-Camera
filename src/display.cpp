@@ -19,24 +19,30 @@ void displayInit() {
     Serial.println("Failed to create tftDisplay mutex");
   }
 
+  FileMutSpi::sdTakeSem();
   xSemaphoreTake(displayMutex, portMAX_DELAY);
   tftDisplay.init();
   tftDisplay.setRotation(1);
+  FileMutSpi::sdGiveSem();
   xSemaphoreGive(displayMutex);
 }
 
 void displayShowJpeg(uint8_t* buf, uint32_t len) {
+  FileMutSpi::sdTakeSem();
   xSemaphoreTake(displayMutex, portMAX_DELAY);
   tftDisplay.startWrite();
   tftDisplay.setAddrWindow(0, 0, screenWidth, screenHeight);
   tftDisplay.pushColors(buf, len);
   tftDisplay.endWrite();
+  FileMutSpi::sdGiveSem();
   xSemaphoreGive(displayMutex);
 }
 
 void displayFillScreen(uint16_t color) {
+  FileMutSpi::sdTakeSem();
   xSemaphoreTake(displayMutex, portMAX_DELAY);
   tftDisplay.fillScreen(color);
+  FileMutSpi::sdGiveSem();
   xSemaphoreGive(displayMutex);
 }
 
