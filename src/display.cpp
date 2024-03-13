@@ -19,24 +19,30 @@ void displayInit() {
     Serial.println("Failed to create tftDisplay mutex");
   }
 
+  FileMutSpi::sdTakeSem();
   xSemaphoreTake(displayMutex, portMAX_DELAY);
   tftDisplay.init();
   tftDisplay.setRotation(1);
+  FileMutSpi::sdGiveSem();
   xSemaphoreGive(displayMutex);
 }
 
 void displayShowJpeg(uint8_t* buf, uint32_t len) {
+  FileMutSpi::sdTakeSem();
   xSemaphoreTake(displayMutex, portMAX_DELAY);
   tftDisplay.startWrite();
   tftDisplay.setAddrWindow(0, 0, screenWidth, screenHeight);
   tftDisplay.pushColors(buf, len);
   tftDisplay.endWrite();
+  FileMutSpi::sdGiveSem();
   xSemaphoreGive(displayMutex);
 }
 
 void displayFillScreen(uint16_t color) {
+  FileMutSpi::sdTakeSem();
   xSemaphoreTake(displayMutex, portMAX_DELAY);
   tftDisplay.fillScreen(color);
+  FileMutSpi::sdGiveSem();
   xSemaphoreGive(displayMutex);
 }
 
@@ -46,6 +52,7 @@ void displayFillScreen(uint16_t color) {
 camera_config_t config;
 
 static void displayImageTask(void * pvParameters) {
+  uint8_t c = 0;
   while (true) {
     
     camera_fb_t *fb = esp_camera_fb_get();
@@ -59,7 +66,20 @@ static void displayImageTask(void * pvParameters) {
     uint32_t len = fb->len;
     Serial.println("Image size: " + String(len) + " bytes");
 
-    displayShowJpeg(buf, len);
+    switch (c%3)
+    {
+    case 0:
+      displayFillScreen(TFT_ORANGE);
+      break;
+    case 1:
+      displayFillScreen(TFT_BLACK);
+      break;
+    case 2:
+      displayFillScreen(TFT_BLUE);
+      break;
+    default:
+      break;
+    }
     Serial.println("Displaying image");
 
     esp_camera_fb_return(fb);    
@@ -67,6 +87,7 @@ static void displayImageTask(void * pvParameters) {
 
     // Delay for a bit before capturing the next frame
     vTaskDelay(2000 / portTICK_PERIOD_MS); // Delay for 100ms
+    c++;
   }
   vTaskDelete(NULL);
 }

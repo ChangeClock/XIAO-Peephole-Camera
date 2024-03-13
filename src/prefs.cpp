@@ -115,7 +115,7 @@ static void loadVectItem(const std::string keyValGrpLabel) {
 }
 
 static void saveConfigVect() {
-  File file = fp.open(CONFIG_FILE_PATH, FILE_WRITE);
+  FileMutSpi file = fp.open(CONFIG_FILE_PATH, FILE_WRITE);
   char configLine[FILE_NAME_LEN + 101];
   if (!file) LOG_ERR("Failed to save to configs file");
   else {
@@ -139,7 +139,7 @@ static bool loadConfigVect() {
   if (psramFound()) heap_caps_malloc_extmem_enable(MIN_RAM); 
   configs.reserve(MAX_CONFIGS);
   // extract each config line from file
-  File file = fp.open(CONFIG_FILE_PATH, FILE_READ);
+  FileMutSpi file = fp.open(CONFIG_FILE_PATH, FILE_READ);
   while (file.available()) {
     String configLineStr = file.readStringUntil('\n');
     if (configLineStr.length()) loadVectItem(configLineStr.c_str());
@@ -430,7 +430,7 @@ void initStatus(int cfgGroup, int delayVal) {
 
 static bool checkConfigFile() {
   // check config file exists
-  File file;
+  FileMutSpi file;
   if (!STORAGE.exists(CONFIG_FILE_PATH)) {
     // create from default in appGlobals.h
     file = fp.open(CONFIG_FILE_PATH, FILE_WRITE);

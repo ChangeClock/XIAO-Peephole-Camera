@@ -50,11 +50,11 @@ static uint16_t frameInterval; // units of 0.1ms between frames
 // SD card storage
 uint8_t iSDbuffer[(RAMSIZE + CHUNK_HDR) * 2];
 static size_t highPoint;
-static File aviFile;
+static FileMutSpi aviFile;
 static char aviFileName[FILE_NAME_LEN];
 
 // SD playback
-static File playbackFile;
+static FileMutSpi playbackFile;
 static char partName[FILE_NAME_LEN];
 static size_t readLen;
 static uint8_t recFPS;
@@ -153,7 +153,7 @@ static void timeLapse(camera_fb_t* fb) {
   //  the time lapse counters wont be modified
   static int frameCntTL, requiredFrames, intervalCnt = 0;
   static int intervalMark = tlSecsBetweenFrames * saveFPS;
-  static File tlFile;
+  static FileMutSpi tlFile;
   static char TLname[FILE_NAME_LEN];
   if (timeLapseOn) {
     if (timeSynchronized) {

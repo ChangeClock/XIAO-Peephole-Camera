@@ -17,7 +17,7 @@ static bool wgetFile(const char* filePath) {
   bool res = false;
   if (fp.exists(filePath)) {
     // if file exists but is empty, delete it to allow re-download
-    File f = fp.open(filePath, FILE_READ);
+    FileMutSpi f = fp.open(filePath, FILE_READ);
     size_t fSize = f.size();
     f.close();
     if (!fSize) fp.remove(filePath);
@@ -25,7 +25,7 @@ static bool wgetFile(const char* filePath) {
   if (!fp.exists(filePath)) {
     char downloadURL[150];
     snprintf(downloadURL, 150, "%s%s", GITHUB_PATH, filePath);
-    File f = fp.open(filePath, FILE_WRITE);
+    FileMutSpi f = fp.open(filePath, FILE_WRITE);
     if (f) {
       WiFiClientSecure wclient;
       if (remoteServerConnect(wclient, GITHUB_HOST, HTTPS_PORT, git_rootCACertificate)) {
