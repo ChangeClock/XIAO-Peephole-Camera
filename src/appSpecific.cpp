@@ -311,7 +311,7 @@ void buildAppJsonString(bool filter) {
   p += sprintf(p, "\"sustainId\":\"%u\",", sustainId); 
     
   // Extend info
-  uint8_t cardType = SD_MMC.cardType();
+  uint8_t cardType = SD.cardType();
   if (cardType == CARD_NONE) p += sprintf(p, "\"card\":\"%s\",", "NO card");
   else {
     if (!filter) {
@@ -319,10 +319,10 @@ void buildAppJsonString(bool filter) {
       else if (cardType == CARD_SD) p += sprintf(p, "\"card\":\"%s\",", "SDSC");
       else if (cardType == CARD_SDHC) p += sprintf(p, "\"card\":\"%s\",", "SDHC"); 
     }
-    p += sprintf(p, "\"card_size\":\"%s\",", fmtSize(SD_MMC.cardSize()));
-    p += sprintf(p, "\"used_bytes\":\"%s\",", fmtSize(SD_MMC.usedBytes()));
-    p += sprintf(p, "\"free_bytes\":\"%s\",", fmtSize(SD_MMC.totalBytes() - SD_MMC.usedBytes()));
-    p += sprintf(p, "\"total_bytes\":\"%s\",", fmtSize(SD_MMC.totalBytes()));
+    p += sprintf(p, "\"card_size\":\"%s\",", fmtSize(SD.cardSize()));
+    p += sprintf(p, "\"used_bytes\":\"%s\",", fmtSize(SD.usedBytes()));
+    p += sprintf(p, "\"free_bytes\":\"%s\",", fmtSize(SD.totalBytes() - SD.usedBytes()));
+    p += sprintf(p, "\"total_bytes\":\"%s\",", fmtSize(SD.totalBytes()));
   }
   p += sprintf(p, "\"free_psram\":\"%s\",", fmtSize(ESP.getFreePsram()));     
 #if INCLUDE_FTP_HFS
