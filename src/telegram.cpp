@@ -268,7 +268,7 @@ bool sendTgramFile(const char* fileName, const char* contentType, const char* ca
   // retrieve identified file from selected storage and send to Telegram
   if (connectTelegram()) {
     fs::FS fp = STORAGE;
-    File df = fp.open(fileName);
+    FileMutSpi df = fp.open(fileName);
     char errMsg[100] = "";
     if (df) {
       if (df.size() < MAX_TGRAM_SIZE) {

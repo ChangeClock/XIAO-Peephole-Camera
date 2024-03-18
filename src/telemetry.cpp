@@ -144,8 +144,8 @@ static void telemetryTask(void* pvParameters) {
     // open storage file
     if (STORAGE.exists(TELETEMP)) STORAGE.remove(TELETEMP);
     if (STORAGE.exists(SRTTEMP)) STORAGE.remove(SRTTEMP);
-    File teleFile = STORAGE.open(TELETEMP, FILE_WRITE);
-    File srtFile = STORAGE.open(SRTTEMP, FILE_WRITE);
+    FileMutSpi teleFile = STORAGE.open(TELETEMP, FILE_WRITE);
+    FileMutSpi srtFile = STORAGE.open(SRTTEMP, FILE_WRITE);
     // write CSV header row to buffer
     highPoint[0] = sprintf(teleBuf[0], "%s", TELEHEADER); 
     highPoint[1] = 0;
