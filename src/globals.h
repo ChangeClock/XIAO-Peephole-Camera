@@ -21,7 +21,7 @@
 #include "ping/ping_sock.h"
 #include <Preferences.h>
 #include <regex>
-#include <SD_MMC.h>
+#include <SD.h>
 #include <LittleFS.h>
 #include <sstream>
 #include <Update.h>

@@ -17,14 +17,14 @@ static auto previousDir = "/~previous";
 static char fsType[10] = {0};
 
 static void infoSD() {
-  uint8_t cardType = SD_MMC.cardType();
+  uint8_t cardType = SD.cardType();
   if (cardType == CARD_NONE) LOG_WRN("No SD card attached");
   else {
     char typeStr[8] = "UNKNOWN";
     if (cardType == CARD_MMC) strcpy(typeStr, "MMC");
     else if (cardType == CARD_SD) strcpy(typeStr, "SDSC");
     else if (cardType == CARD_SDHC) strcpy(typeStr, "SDHC");
-    LOG_INF("SD card type %s, Size: %s", typeStr, fmtSize(SD_MMC.cardSize()));
+    LOG_INF("SD card type %s, Size: %s", typeStr, fmtSize(SD.cardSize()));
   }
 }
 
@@ -47,11 +47,11 @@ static bool prepSD_MMC() {
   LOG_ERR("SD card pins not defined");
   return false;
 #else
-  SD_MMC.setPins(SD_MMC_CLK, SD_MMC_CMD, SD_MMC_D0);
+  // SD.setPins(SD_MMC_CLK, SD_MMC_CMD, SD_MMC_D0);
 #endif
 #endif
   
-  res = SD_MMC.begin("/sdcard", true, formatIfMountFailed);
+  res = SD.begin(D2);
 #if defined(CAMERA_MODEL_AI_THINKER)
   pinMode(4, OUTPUT);
   digitalWrite(4, 0); // set lamp pin fully off as sd_mmc library still initialises pin 4 in 1 line mode
@@ -82,8 +82,8 @@ static void listFolder(const char* rootDir) {
 bool startStorage() {
   // start required storage device (SD card or flash file system)
   bool res = false;
-  if ((fs::SDMMCFS*)&STORAGE == &SD_MMC) {
-    strcpy(fsType, "SD_MMC");
+  if ((fs::SDFS*)&STORAGE == &SD) {
+    strcpy(fsType, "SD");
     res = prepSD_MMC();
     if (res) listFolder(DATA_DIR);
     else snprintf(startupFailure, SF_LEN, "Startup Failure: Check SD card inserted");
