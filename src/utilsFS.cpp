@@ -70,8 +70,8 @@ static bool prepSD_MMC() {
 static void listFolder(const char* rootDir) { 
   // list contents of folder
   LOG_INF("Sketch size %s", fmtSize(ESP.getSketchSize()));    
-  File root = fp.open(rootDir);
-  File file = root.openNextFile();
+  FileMutSpi root = fp.open(rootDir);
+  FileMutSpi file = root.openNextFile();
   while (file) {
     LOG_INF("File: %s, size: %s", file.path(), fmtSize(file.size()));
     file = root.openNextFile();
@@ -122,8 +122,8 @@ bool startStorage() {
 
 static void getOldestDir(char* oldestDir) {
   // get oldest folder by its date name
-  File root = fp.open("/");
-  File file = root.openNextFile();
+  FileMutSpi root = fp.open("/");
+  FileMutSpi file = root.openNextFile();
   if (file) strcpy(oldestDir, file.path()); // initialise oldestDir
   while (file) {
     if (file.isDirectory() && strstr(file.name(), "System") == NULL // ignore Sys Vol Info
@@ -134,7 +134,7 @@ static void getOldestDir(char* oldestDir) {
   }
 }
 
-void inline getFileDate(File file, char* fileDate) {
+void inline getFileDate(FileMutSpi file, char* fileDate) {
   // get creation date of file as string
   time_t writeTime = file.getLastWrite();
   struct tm lt;
@@ -206,7 +206,7 @@ bool listDir(const char* fname, char* jsonBuff, size_t jsonBuffLen, const char* 
     // ignore leading '/' if not the only character
     bool returnDirs = strlen(fileName) > 1 ? (strchr(fileName+1, '/') == NULL ? false : true) : true; 
     // open relevant folder to list contents
-    File root = fp.open(fileName);
+    FileMutSpi root = fp.open(fileName);
     if (strlen(fileName)) {
       if (!root) LOG_ERR("Failed to open directory %s", fileName);
       else if (!root.isDirectory()) LOG_ERR("Not a directory %s", fileName);
@@ -215,7 +215,7 @@ bool listDir(const char* fname, char* jsonBuff, size_t jsonBuffLen, const char* 
     
     // build relevant option list
     strcpy(jsonBuff, returnDirs ? "{" : "{\"/\":\".. [ Up ]\",");            
-    File file = root.openNextFile();
+    FileMutSpi file = root.openNextFile();
     if (psramFound()) heap_caps_malloc_extmem_enable(MIN_RAM); // small number to force vector into psram
     while (file) {
       if (returnDirs && file.isDirectory() && strstr(DATA_DIR, file.name()) == NULL) {  
@@ -258,7 +258,7 @@ void deleteFolderOrFile(const char* deleteThis) {
   // delete supplied file or folder, unless it is a reserved folder
   char fileName[FILE_NAME_LEN];
   setFolderName(deleteThis, fileName);
-  File df = fp.open(fileName);
+  FileMutSpi df = fp.open(fileName);
   if (!df) {
     LOG_ERR("Failed to open %s", fileName);
     return;
@@ -274,7 +274,7 @@ void deleteFolderOrFile(const char* deleteThis) {
   // Empty named folder first
   if (df.isDirectory() || ((!strcmp(fsType, "SPIFFS")) && strstr("/", fileName) != NULL)) {
     LOG_INF("Folder %s contents", fileName);
-    File file = df.openNextFile();
+    FileMutSpi file = df.openNextFile();
     while (file) {
       char filepath[FILE_NAME_LEN];
       strcpy(filepath, file.path()); 
@@ -309,7 +309,7 @@ void deleteFolderOrFile(const char* deleteThis) {
 
 #define BLOCKSIZE 512
 
-static esp_err_t writeHeader(File& inFile, httpd_req_t* req) {  
+static esp_err_t writeHeader(FileMutSpi& inFile, httpd_req_t* req) {  
   char tarHeader[BLOCKSIZE] = {}; // 512 bytes tar header
   strncpy(tarHeader, inFile.name(), 99); // name of file
   sprintf(tarHeader + 100, "0000666"); // file permissions stored as ascii octal number
@@ -327,7 +327,7 @@ static esp_err_t writeHeader(File& inFile, httpd_req_t* req) {
   return httpd_resp_send_chunk(req, tarHeader, BLOCKSIZE);
 }
 
-esp_err_t downloadFile(File& df, httpd_req_t* req) {
+esp_err_t downloadFile(FileMutSpi& df, httpd_req_t* req) {
   // download file as attachment, required file name in inFileName
   // setup download header, create zip file if required, and download file
   esp_err_t res = ESP_OK;
@@ -348,7 +348,7 @@ esp_err_t downloadFile(File& df, httpd_req_t* req) {
     downloadSize = 0;
     for (const auto& ext : extensions) {
       changeExtension(fsSavePath, ext);
-      File inFile = STORAGE.open(fsSavePath, FILE_READ);
+      FileMutSpi inFile = STORAGE.open(fsSavePath, FILE_READ);
       if (inFile) {
         // round up file size to 512 byte boundary and add header size
         downloadSize += (((inFile.size() + BLOCKSIZE - 1) / BLOCKSIZE) * BLOCKSIZE) + BLOCKSIZE;
@@ -377,7 +377,7 @@ esp_err_t downloadFile(File& df, httpd_req_t* req) {
     // package avi file and ancillary files into uncompressed tarball
     for (const auto& ext : extensions) {
       changeExtension(fsSavePath, ext);
-      File inFile = STORAGE.open(fsSavePath, FILE_READ);
+      FileMutSpi inFile = STORAGE.open(fsSavePath, FILE_READ);
       if (inFile) {
         res = writeHeader(inFile, req);
         if (res == ESP_OK) res = sendChunks(inFile, req, false);

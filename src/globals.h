@@ -31,6 +31,7 @@
 #include <WiFiClientSecure.h>
 #include <esp_http_server.h>
 #include <esp_https_server.h>
+#include "fileMuxSpi.hpp"
 
 // ADC
 #define ADC_ATTEN ADC_11db
@@ -94,7 +95,7 @@ void deleteFolderOrFile(const char* deleteThis);
 void devSetup();
 void doAppPing();
 void doRestart(const char* restartStr);
-esp_err_t downloadFile(File& df, httpd_req_t* req);
+esp_err_t downloadFile(FileMutSpi& df, httpd_req_t* req);
 void emailAlert(const char* _subject, const char* _message);
 const char* encode64(const char* inp);
 const uint8_t* encode64chunk(const uint8_t* inp, int rem);
@@ -144,7 +145,7 @@ void replaceChar(char* s, char c, char r);
 void reset_log();
 void resetWatchDog();
 bool retrieveConfigVal(const char* variable, char* value);
-esp_err_t sendChunks(File df, httpd_req_t *req, bool endChunking = true);
+esp_err_t sendChunks(FileMutSpi df, httpd_req_t *req, bool endChunking = true);
 void setFolderName(const char* fname, char* fileName);
 void setPeripheralResponse(const byte pinNum, const uint32_t responseData);
 void setupADC();

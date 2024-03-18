@@ -432,7 +432,7 @@ static bool downloadAvi(const char* userCmd) {
 static void saveRamLog() {
   // save ramlog to storage
   if (ramLog) {
-    File ramFile = STORAGE.open(DATA_DIR "/ramlog" TEXT_EXT, FILE_WRITE);
+    FileMutSpi ramFile = STORAGE.open(DATA_DIR "/ramlog" TEXT_EXT, FILE_WRITE);
     int startPtr, endPtr;
     startPtr = endPtr = mlogEnd;  
     // write log in chunks

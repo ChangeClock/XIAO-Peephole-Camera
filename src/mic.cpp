@@ -45,7 +45,7 @@ static bool micType;
 const uint32_t SAMPLE_RATE = 16000; // sample rate used
 static const uint8_t sampleWidth = sizeof(int16_t); 
 static const size_t sampleBytes = DMA_BUFF_LEN * sampleWidth;
-static File wavFile;
+static FileMutSpi wavFile;
 static int totalSamples = 0;
 static size_t bytesRead = 0;
 static size_t audBytes = 0;

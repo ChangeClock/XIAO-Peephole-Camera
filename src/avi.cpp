@@ -96,7 +96,7 @@ static size_t idxOffset[2];
 static size_t moviSize[2];
 static size_t audSize;
 static size_t indexLen[2];
-static File wavFile;
+static FileMutSpi wavFile;
 bool haveSoundFile = false;
 
 
